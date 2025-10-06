@@ -13,8 +13,8 @@ authors = [
 ]
 
 dependencies = [
-    "scipy",
-    "rpyc"
+    "scipy==1.16.2",
+    "rpyc==6.0.2"
 ]
 
 [project.optional-dependencies]
