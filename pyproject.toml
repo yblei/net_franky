@@ -13,11 +13,11 @@ authors = [
 
 dependencies = [
     "scipy",
-    "rpyc"
+    "rpyc",
 ]
 
 [project.optional-dependencies]
 
 server = [
-    "franky"
+    "franky-control"
     ]
