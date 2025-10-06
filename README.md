@@ -35,7 +35,7 @@ pip install "net_franky[server] @ git+https://github.com/yblei/net_franky.git"
 
 ### 2. Start server (Run in tmux/screen)
 ```bash
-rpyc_classic -p 18812
+rpyc_classic -p 18812 --host 0.0.0.0
 ```
 
 ### 3. Client Usage (Your laptop)
