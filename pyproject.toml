@@ -7,7 +7,6 @@ name = "net_franky"
 version = "0.0.0"
 description = "Minimal pyproject for the net_franky package"
 readme = "README.md"
-requires-python = ">=3.11"
 authors = [
 	{ name = "Yannik Blei" }
 ]
@@ -20,5 +19,5 @@ dependencies = [
 [project.optional-dependencies]
 
 server = [
-    "franky"
+    "franky-control"
     ]
