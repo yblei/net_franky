@@ -12,15 +12,12 @@ authors = [
 	{ name = "Yannik Blei" }
 ]
 
-# No runtime dependencies defined — add dependencies under
-# `dependencies = ["pkg>=1.2"]` if needed.
+dependencies = [
+    "scipy",
+    "rpyc"
+]
 
 [project.optional-dependencies]
-all = [
-    "rpyc",
-    "scipy",
-	"rpyc"
-    ]
 
 server = [
     "franky"
