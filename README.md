@@ -2,7 +2,6 @@
 
 **Use the [Franky library](https://github.com/TimSchneider42/franky) from non-realtime Machines.**
 
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
@@ -18,7 +17,7 @@
 
 
 ## 🎯 Key Benefits:
-- 🔌 **Drop-in replacement** for the franky library
+- 🔌 **Drop-in replacement** for the franky library with function stubs
 - ⚡ **Well proven** - building on the common rpyc library
 - 🚀 **Simple** - 5 minutes to get started
 
@@ -26,20 +25,22 @@
 
 ## 🚀 Quick Start
 
-### Server Setup (Real-time machine)
+### 1. Server Setup (Real-time machine)
 ```bash
 # One-time setup
 mkdir ~/net_franky && cd ~/net_franky
 python -m venv .venv && source .venv/bin/activate
-pip install net_franky.[server]
+pip install "net_franky[server] @ git+https://github.com/yblei/net_franky.git"
+```
 
-# Start server (run in tmux/screen)
+### 2. Start server (Run in tmux/screen)
+```bash
 rpyc_classic -p 18812
 ```
 
-### Client Usage (Your laptop)
+### 3. Client Usage (Your laptop)
 ```bash
-pip install net_franky
+pip install 'git+https://github.com/yblei/net_franky.git'
 ```
 
 ```python
