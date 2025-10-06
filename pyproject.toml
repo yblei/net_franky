@@ -19,6 +19,7 @@ authors = [
 all = [
     "rpyc",
     "scipy",
+	"rpyc"
     ]
 
 server = [
