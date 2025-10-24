@@ -19,10 +19,15 @@ except ConnectionRefusedError as e:
         f"Could not connect to remote server at {cfg.IP}:{cfg.PORT}. "
         "Make sure the remote server is running and accessible."
     ) from e
-    
+
 franky = conn.modules["franky"]
+cb_robot = conn.modules["net_franky.cb_robot"]
 
 # Add all remote franky attributes to current module
 for attr_name in dir(franky):
+    if attr_name == "Robot":
+        # we use our own robot class that wraps franky.Robot. It only adds callback functionality to buffer the latest robot state.
+        setattr(current_module, "Robot", cb_robot.CBRobot)
+        continue
     if not attr_name.startswith('_'):
         setattr(current_module, attr_name, getattr(franky, attr_name))
