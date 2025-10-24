@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from typing import List, Type
+
 from ._franky import (
-    Condition,
     BaseCartesianPoseMotion,
     BaseCartesianVelocityMotion,
     BaseJointPositionMotion,
@@ -7,6 +10,7 @@ from ._franky import (
     BaseTorqueMotion,
     CartesianPoseReaction as _CartesianPoseReaction,
     CartesianVelocityReaction as _CartesianVelocityReaction,
+    Condition,
     JointPositionReaction as _JointPositionReaction,
     JointVelocityReaction as _JointVelocityReaction,
     TorqueReaction as _TorqueReaction,
@@ -16,39 +20,29 @@ from .motion import Motion
 
 
 class Reaction:
-    _control_signal_type = None
+    _control_signal_type: None
 
-    def __new__(cls, condition: Condition, motion: Motion):
-        for reaction_type in _REACTION_TYPES:
-            if isinstance(motion, reaction_type._motion_type):
-                return reaction_type.__new__(reaction_type, condition, motion)
-        raise TypeError(f"Unknown motion type {type(motion)}.")
+    def __new__(cls, condition: Condition, motion: Motion) -> Reaction: ...
 
 
 class CartesianPoseReaction(_CartesianPoseReaction, Reaction):
-    _motion_type = BaseCartesianPoseMotion
+    _motion_type: Type[BaseCartesianPoseMotion]
 
 
 class CartesianVelocityReaction(_CartesianVelocityReaction, Reaction):
-    _motion_type = BaseCartesianVelocityMotion
+    _motion_type: Type[BaseCartesianVelocityMotion]
 
 
 class JointPositionReaction(_JointPositionReaction, Reaction):
-    _motion_type = BaseJointPositionMotion
+    _motion_type: Type[BaseJointPositionMotion]
 
 
 class JointVelocityReaction(_JointVelocityReaction, Reaction):
-    _motion_type = BaseJointVelocityMotion
+    _motion_type: Type[BaseJointVelocityMotion]
 
 
 class TorqueReaction(_TorqueReaction, Reaction):
-    _motion_type = BaseTorqueMotion
+    _motion_type: Type[BaseTorqueMotion]
 
 
-_REACTION_TYPES = [
-    CartesianPoseReaction,
-    CartesianVelocityReaction,
-    JointPositionReaction,
-    JointVelocityReaction,
-    TorqueReaction,
-]
+_REACTION_TYPES: List[Type[Reaction]]
