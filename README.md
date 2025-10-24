@@ -71,6 +71,8 @@ We therefore provide a pointer to the latest motion callback data in
 robot_state, time_step, rel_time, abs_time, control_signal = robot.get_last_callback_data()
 ```
 
+**Warning:** If you get segmentation faults, make sure you use the same version of python on the server and the client.
+
 
 ## 🤝 Contributing
 
