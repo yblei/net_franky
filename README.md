@@ -45,10 +45,10 @@ pip install 'git+https://github.com/yblei/net_franky.git'
 
 ```python
 from net_franky import setup_net_franky
-from net_franky.franky import Robot
-
 # Connect to remote server
 setup_net_franky("server-ip", 18812)
+
+from net_franky.franky import Robot
 
 # Use exactly like local franky
 robot = Robot("192.168.1.100")
