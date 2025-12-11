@@ -1,6 +1,6 @@
 # 🤖 net_franky
 
-**Use the [Franky library](https://github.com/TimSchneider42/franky) from non-realtime Machines.**
+**Use the [Franky library](https://github.com/TimSchneider42/franky) from non-realtime machines.**
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://github.com/yblei/net_franky/actions/workflows/scheduled-tests.yml/badge.svg)](https://github.com/yblei/net_franky/actions/workflows/scheduled-tests.yml)
