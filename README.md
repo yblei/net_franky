@@ -3,7 +3,6 @@
 **Use the [Franky library](https://github.com/TimSchneider42/franky) from non-realtime Machines.**
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)]()
 [![Tests](https://github.com/yblei/net_franky/actions/workflows/scheduled-tests.yml/badge.svg)](https://github.com/yblei/net_franky/actions/workflows/scheduled-tests.yml)
 
 
