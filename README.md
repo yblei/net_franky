@@ -30,7 +30,7 @@
 # One-time setup
 mkdir ~/net_franky && cd ~/net_franky
 python -m venv .venv && source .venv/bin/activate
-pip install "net_franky[server] @ git+https://github.com/yblei/net_franky.git"
+pip install net-franky[server]
 ```
 
 ### 2. Start server (Run in tmux/screen)
@@ -40,7 +40,7 @@ rpyc_classic -p 18812 --host 0.0.0.0
 
 ### 3. Client Usage (Your laptop)
 ```bash
-pip install 'git+https://github.com/yblei/net_franky.git'
+pip install net-franky
 ```
 
 ```python
