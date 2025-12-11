@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "net_franky"
-version = "0.0.0"
+version = "1.0.0"
 description = "Minimal pyproject for the net_franky package"
 readme = "README.md"
 authors = [
