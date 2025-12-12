@@ -60,7 +60,7 @@ robot.move_to([0.3, 0.4, 0.5])
 
 ---
 
-## Only Deviation from franky: Wrapper around the robot class
+## Only deviation from franky: Wrapper around the robot class
 Franky supports the registration of a callback function to a motion. 
 This is useful to record trajectories or to stream pose information back for visualization. 
 Since this function is called with 1000Hz and the calls are buffered, execution over the network leads to significant delays. 
