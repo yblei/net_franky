@@ -38,11 +38,21 @@ pip install net-franky[server]
 rpyc_classic -p 18812 --host 0.0.0.0
 ```
 
-### 3. Client Usage (Your laptop)
+### 3. Installation
+
+#### Install via `pip`
 ```bash
 pip install net-franky
 ```
 
+#### Install from source
+```bash
+git clone https://github.com/yblei/net_franky.git
+cd net_franky
+pip install -e .
+```
+
+#### Usage
 ```python
 from net_franky import setup_net_franky
 # Connect to remote server
@@ -65,7 +75,7 @@ robot.move(motion)
 
 ---
 
-## Only deviation from franky: Wrapper around the robot class
+## Deviation from franky: Wrapper around the robot class
 Franky supports the registration of a callback function to a motion. 
 This is useful to record trajectories or to stream pose information back for visualization. 
 Since this function is called with 1000Hz and the calls are buffered, execution over the network leads to significant delays. 
@@ -81,4 +91,4 @@ robot_state, time_step, rel_time, abs_time, control_signal = robot.get_last_call
 
 ## 🤝 Contributing
 
-We welcome contributions!
+We welcome your contributions! Please feel free to report issues if there are any. If you have new ideas/features, please fork the repository, implement your changes, and create a pull request:)
