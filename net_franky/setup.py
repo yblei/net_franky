@@ -13,6 +13,7 @@ class Config:
     IS_SETUP: bool = False
     IP: str | None = None
     PORT: int | None = None
+    REMOTE_MANAGER: "RemoteFrankyManager | None" = None
 
 cfg = Config()
 
@@ -78,6 +79,7 @@ def setup_net_franky(ip, port, autosetup=False, autostart_remote_server=False, u
         if user is None:
             raise ValueError("Remote user name 'user' attribute must be provided for automatic net_franky setup on the remote side autostart_remote_server.")
         rfm = RemoteFrankyManager(ip, port, user, ssh_port, netfranky_remote_path)
+        cfg.REMOTE_MANAGER = rfm
         print("Starting remote net_franky server...")
         try:
             rfm.run_remote_server()
@@ -86,6 +88,7 @@ def setup_net_franky(ip, port, autosetup=False, autostart_remote_server=False, u
                 raise
             print(f"Remote net_franky server already appears to be running on {ip}:{port}. Reusing it.")
         if use_ssh_tunnel:
+            rfm.wait_for_remote_port()
             cfg.IP, cfg.PORT = rfm.start_ssh_port_forward()
         rfm.wait_for_port(cfg.IP, cfg.PORT)
 
@@ -111,6 +114,9 @@ class RemoteFrankyManager:
         self.forward_port = None
         self._forward_server = None
         self._forward_thread = None
+        self._remote_server_stdin = None
+        self._remote_server_stdout = None
+        self._remote_server_stderr = None
         self._cleanup_registered = False
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -164,57 +170,16 @@ class RemoteFrankyManager:
     
     def run_remote_server(self):
         remote_path = self._remote_shell_path()
-        log_path = shlex.quote(f"/tmp/net_franky_rpyc_{self.port}.log")
         command = (
             f"cd {remote_path} && "
-            f"nohup .venv/bin/rpyc_classic -p {self.port} --host 0.0.0.0 "
-            f"> {log_path} 2>&1 < /dev/null & echo $!"
+            f".venv/bin/rpyc_classic -p {self.port} --host 0.0.0.0"
         )
         stdin, stdout, stderr = self.ssh_client.exec_command(command)
-        channel = stdout.channel
-        deadline = time.monotonic() + self._remote_command_timeout
-        output = ""
-        error = ""
-
-        while time.monotonic() < deadline:
-            while channel.recv_ready():
-                output += channel.recv(1024).decode()
-            while channel.recv_stderr_ready():
-                error += channel.recv_stderr(1024).decode()
-
-            if output.strip():
-                self.remote_server_pid = int(output.strip().splitlines()[-1])
-                self._register_cleanup()
-                return self.remote_server_pid
-
-            if channel.exit_status_ready():
-                break
-
-            time.sleep(0.05)
-
-        if channel.exit_status_ready():
-            exit_status = channel.recv_exit_status()
-        else:
-            exit_status = None
-
-        while channel.recv_ready():
-            output += channel.recv(1024).decode()
-        while channel.recv_stderr_ready():
-            error += channel.recv_stderr(1024).decode()
-
-        output = output.strip()
-        error = error.strip()
-        if exit_status is None:
-            raise RuntimeError(
-                f"Timed out waiting for remote net_franky server startup at {self.netfranky_remote_path}."
-            )
-        if exit_status != 0 or not output:
-            raise RuntimeError(
-                f"Remote server start failed at {self.netfranky_remote_path}: {error or output or 'missing remote pid'}"
-            )
-        self.remote_server_pid = int(output.splitlines()[-1])
+        self._remote_server_stdin = stdin
+        self._remote_server_stdout = stdout
+        self._remote_server_stderr = stderr
         self._register_cleanup()
-        return self.remote_server_pid
+        return None
 
     def start_ssh_port_forward(self, local_host="127.0.0.1", local_port=0):
         if self._forward_server is not None:
@@ -257,11 +222,41 @@ class RemoteFrankyManager:
             f"Timed out waiting for net_franky RPC server at {host}:{port}. Is the port reachable?"
         ) from last_error
 
+    def wait_for_remote_port(self, timeout=10.0):
+        deadline = time.monotonic() + timeout
+        remote_check_script = (
+            f'import socket; '
+            f'sock = socket.create_connection(("127.0.0.1", {self.port}), timeout=0.5); '
+            'sock.close()'
+        )
+        remote_check = (
+            "python3 -c "
+            f"{shlex.quote(remote_check_script)}"
+        )
+        last_error = None
+        while time.monotonic() < deadline:
+            stdin, stdout, stderr = self.ssh_client.exec_command(remote_check)
+            exit_status = stdout.channel.recv_exit_status()
+            if exit_status == 0:
+                return True
+            last_error = stderr.read().decode().strip() or stdout.read().decode().strip() or "remote port not ready"
+            time.sleep(0.2)
+        raise RuntimeError(
+            f"Timed out waiting for remote net_franky RPC server at 127.0.0.1:{self.port}."
+        ) from RuntimeError(last_error)
+
     def stop_remote_server(self):
-        if self.remote_server_pid is None:
+        if self._remote_server_stdout is None and self._remote_server_stdin is None and self._remote_server_stderr is None:
             return False
-        command = f"kill {self.remote_server_pid} >/dev/null 2>&1 || true"
-        self.ssh_client.exec_command(command)
+        for stream_name in ("_remote_server_stdin", "_remote_server_stdout", "_remote_server_stderr"):
+            stream = getattr(self, stream_name)
+            if stream is None:
+                continue
+            try:
+                stream.close()
+            except Exception:
+                pass
+            setattr(self, stream_name, None)
         self.remote_server_pid = None
         return True
 
@@ -289,6 +284,8 @@ class RemoteFrankyManager:
         self.stop_ssh_port_forward()
         self.stop_remote_server()
         self.ssh_client.close()
+        if cfg.REMOTE_MANAGER is self:
+            cfg.REMOTE_MANAGER = None
 
     def _register_cleanup(self):
         if self._cleanup_registered:
