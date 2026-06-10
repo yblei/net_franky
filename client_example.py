@@ -1,5 +1,8 @@
 from net_franky import setup_net_franky
-setup_net_franky("localhost", 18812)
+from net_franky.setup import setup_net_franky
+
+# change the information in the setup function to match your robot's configuration
+setup_net_franky("localhost", 18812, user="<username>", autosetup=True, autostart_remote_server=True, use_ssh_tunnel=True)
 
 from net_franky.franky import *
 from scipy.spatial.transform import Rotation
@@ -10,7 +13,7 @@ robot = Robot("192.168.100.1")  # Replace this with your robot's IP
 robot.recover_from_errors()
 
 # Let's start slow (this lets the robot use a maximum of 5% of its velocity, acceleration, and jerk limits)
-robot.relative_dynamics_factor = 0.05
+robot.relative_dynamics_factor = 0.02
 z_translation_1 = Affine(np.array([0.4, 0.0, 0.3]))
 z_translation_2 = Affine(np.array([0.3, 0.0, 0.4]))
 

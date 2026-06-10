@@ -91,6 +91,8 @@ def setup_net_franky(ip, port, autosetup=False, autostart_remote_server=False, u
 
 
 class RemoteFrankyManager:
+    _remote_command_timeout = 5.0
+
     def __init__(self, ip, port, user, ssh_port, netfranky_remote_path):
         try:
             import paramiko
@@ -169,9 +171,43 @@ class RemoteFrankyManager:
             f"> {log_path} 2>&1 < /dev/null & echo $!"
         )
         stdin, stdout, stderr = self.ssh_client.exec_command(command)
-        exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-        error = stderr.read().decode().strip()
+        channel = stdout.channel
+        deadline = time.monotonic() + self._remote_command_timeout
+        output = ""
+        error = ""
+
+        while time.monotonic() < deadline:
+            while channel.recv_ready():
+                output += channel.recv(1024).decode()
+            while channel.recv_stderr_ready():
+                error += channel.recv_stderr(1024).decode()
+
+            if output.strip():
+                self.remote_server_pid = int(output.strip().splitlines()[-1])
+                self._register_cleanup()
+                return self.remote_server_pid
+
+            if channel.exit_status_ready():
+                break
+
+            time.sleep(0.05)
+
+        if channel.exit_status_ready():
+            exit_status = channel.recv_exit_status()
+        else:
+            exit_status = None
+
+        while channel.recv_ready():
+            output += channel.recv(1024).decode()
+        while channel.recv_stderr_ready():
+            error += channel.recv_stderr(1024).decode()
+
+        output = output.strip()
+        error = error.strip()
+        if exit_status is None:
+            raise RuntimeError(
+                f"Timed out waiting for remote net_franky server startup at {self.netfranky_remote_path}."
+            )
         if exit_status != 0 or not output:
             raise RuntimeError(
                 f"Remote server start failed at {self.netfranky_remote_path}: {error or output or 'missing remote pid'}"
@@ -232,12 +268,21 @@ class RemoteFrankyManager:
     def stop_ssh_port_forward(self):
         if self._forward_server is None:
             return False
-        self._forward_server.shutdown()
-        self._forward_server.server_close()
-        self._forward_server = None
-        self._forward_thread = None
-        self.forward_host = None
-        self.forward_port = None
+        forward_server = self._forward_server
+        forward_thread = self._forward_thread
+        try:
+            if (
+                forward_thread is not None
+                and forward_thread is not threading.current_thread()
+                and getattr(forward_thread, "is_alive", lambda: True)()
+            ):
+                forward_server.shutdown()
+            forward_server.server_close()
+        finally:
+            self._forward_server = None
+            self._forward_thread = None
+            self.forward_host = None
+            self.forward_port = None
         return True
 
     def close(self):
