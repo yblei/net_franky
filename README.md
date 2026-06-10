@@ -25,6 +25,35 @@
 
 ## 🚀 Quick Start
 
+We support several convenience functions to automatically manage your remote execution environment.
+The following example will automatically ensure, your remote environment is accessible and setup.
+
+- `autosetup=True` Automatically clones and installs net_franky on your remote machine.
+- `autostart_remote_server=True` Ensures, the remote RPC server is running.
+- `use_ssh_tunnel=True` Tunnels the connection to remote port 18812 through ssh in case your firewall direct port access on remote machiens.
+
+Please follow [Manual Setup](##Manual-Setup) in case any of the above fails.
+
+### Usage
+```python
+from net_franky import setup_net_franky
+# Connect to remote server
+setup_net_franky("server-ip", 18812, user="your_user", autosetup=True, autostart_remote_server=True, use_ssh_tunnel=True)
+
+from net_franky.franky import Robot, CartesianMotion
+
+robot = Robot("10.90.90.1")  # Replace this with your robot's IP
+
+# Let's start slow (this lets the robot use a maximum of 5% of its velocity, acceleration, and jerk limits)
+robot.relative_dynamics_factor = 0.05
+
+# Move the robot 20cm along the relative X-axis of its end-effector
+motion = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
+robot.move(motion)
+```
+
+## Manual Setup
+
 ### 1. Server Setup (Real-time machine)
 ```bash
 # One-time setup
@@ -50,24 +79,6 @@ pip install net-franky
 git clone https://github.com/yblei/net_franky.git
 cd net_franky
 pip install -e .
-```
-
-#### Usage
-```python
-from net_franky import setup_net_franky
-# Connect to remote server
-setup_net_franky("server-ip", 18812)
-
-from net_franky.franky import Robot, CartesianMotion
-
-robot = Robot("10.90.90.1")  # Replace this with your robot's IP
-
-# Let's start slow (this lets the robot use a maximum of 5% of its velocity, acceleration, and jerk limits)
-robot.relative_dynamics_factor = 0.05
-
-# Move the robot 20cm along the relative X-axis of its end-effector
-motion = CartesianMotion(Affine([0.2, 0.0, 0.0]), ReferenceType.Relative)
-robot.move(motion)
 ```
 
 **That's it!** 🎉 Your robot code now runs remotely.
